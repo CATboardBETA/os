@@ -1,0 +1,11 @@
+[package]
+name = "runner"
+version.workspace = true
+edition.workspace = true
+
+[build-dependencies]
+kernela = { package = "kernel", path = "../kernel", artifact = "bin", target = "runner/aarch64-none-none.json", optional = true}
+kernelx = { package = "kernel", path = "../kernel", artifact = "bin", target = "runner/x86_64-none-none.json" }
+
+[features]
+aarch = ["kernela"]

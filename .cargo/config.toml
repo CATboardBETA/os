@@ -1,0 +1,11 @@
+[unstable]
+bindeps = true
+json-target-spec = true
+[target."runner/x86_64-none-none.json".unstable]
+build-std = ["alloc", "core", "compiler_builtins"]
+[target."runner/aarch64-none-none.json".unstable]
+build-std = ["alloc", "core", "compiler_builtins"]
+[target."runner/x86_64-none-none.json"]
+rustflags = ["-C", "relocation-model=static"]
+[target."runner/aarch64-none-none.json"]
+rustflags = ["-C", "relocation-model=static"]
