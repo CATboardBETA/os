@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use std::process::{exit, Command, Stdio};
+use std::process::{Command, Stdio, exit};
 use std::{env, fs};
 
 fn main() {
@@ -9,7 +9,7 @@ fn main() {
 
     let iso_dir = PathBuf::from("../iso");
 
-    Command::new("cargo")
+    let status = Command::new("cargo")
         .args([
             "build",
             "-Z",
@@ -30,11 +30,19 @@ fn main() {
             "-vv",
         ])
         .status()
-        .unwrap();
+        .unwrap()
+        .code();
+    if status.is_none() || status.unwrap() != 0 {
+        panic!("cannot continue with failed kernel build");
+    }
+
     let kernel_executable_file = PathBuf::from("./kernel").canonicalize().unwrap();
 
     let kernel_dest = iso_dir.join("kernel");
-    fs::copy(&kernel_executable_file, &kernel_dest).unwrap_or_else(|_| { println!("cargo:error=failed to build");exit(0) });
+    fs::copy(&kernel_executable_file, &kernel_dest).unwrap_or_else(|_| {
+        println!("cargo:error=failed to build");
+        exit(0)
+    });
     Command::new("xorriso")
         .args(dbg!([
             "-as",
@@ -67,7 +75,10 @@ fn main() {
         .unwrap();
     println!("cargo:rustc-env=ISO=image.iso");
 
-    println!("cargo:rerun-if-changed={}", concat!(env!("CARGO_MANIFEST_DIR"), "../kernel"));
+    println!(
+        "cargo:rerun-if-changed={}",
+        concat!(env!("CARGO_MANIFEST_DIR"), "../kernel")
+    );
 
     Command::new("limine")
         .args(["../image.iso"])

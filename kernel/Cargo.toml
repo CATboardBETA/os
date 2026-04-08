@@ -7,5 +7,8 @@ edition.workspace = true
 [dependencies]
 limine = "0.6.3"
 embedded-graphics = "0.8.2"
-buddy-slab-allocator = "0.2.0"
 spin = "0.10.0"
+bytesize = { version = "2.3.1", default-features = false }
+talc = "5.0.3"
+[target.'cfg(target_arch="x86_64")'.dependencies]
+x86_64 = "0.15.4"

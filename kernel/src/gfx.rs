@@ -1,18 +1,39 @@
-use core::fmt::Write;
-use embedded_graphics::mono_font::iso_8859_1::FONT_10X20;
+use core::fmt;
+use core::fmt::{Arguments, Write};
 use embedded_graphics::mono_font::MonoTextStyle;
+use embedded_graphics::mono_font::iso_8859_1::FONT_10X20;
 use embedded_graphics::pixelcolor::Rgb888;
 use embedded_graphics::prelude::*;
+use embedded_graphics::text::Text;
 use limine::framebuffer::Framebuffer;
+use spin::{Mutex, Once};
+
+pub struct Mutexx<T>(pub(crate) Mutex<T>);
+
+// This is probably fine...
+unsafe impl<T> Send for Mutexx<T> {}
+unsafe impl<T> Sync for Mutexx<T> {}
+
+pub(crate) static DISPLAY: Mutexx<Once<Display>> = Mutexx(Mutex::new(Once::new()));
 
 #[macro_export]
 macro_rules! println {
-    () => {};
+    () => (print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::gfx::_print(format_args!($($arg)*)));
+}
+
+pub fn _print(args: Arguments) {
+    DISPLAY.0.lock().get_mut().unwrap().write_fmt(args).unwrap();
 }
 
 #[derive(Copy, Clone, Default)]
 pub(crate) struct TextInfo {
-    pos: (i32, i32),
+    pub(crate) pos: (i32, i32),
 }
 
 pub struct Display {
@@ -20,18 +41,41 @@ pub struct Display {
     pub(crate) text_info: TextInfo,
 }
 
+impl Write for Mutexx<Once<Display>> {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.0.lock().get_mut().unwrap().write_str(s)
+    }
+    fn write_char(&mut self, c: char) -> fmt::Result {
+        self.0.lock().get_mut().unwrap().write_char(c)
+    }
+
+    fn write_fmt(&mut self, args: Arguments<'_>) -> fmt::Result {
+        self.0.lock().get_mut().unwrap().write_fmt(args)
+    }
+}
+
 impl Write for Display {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        self.text_info.pos = match embedded_graphics::text::Text::new(
-            s,
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for c in s.chars() {
+            self.write_char(c)?;
+        }
+        Ok(())
+    }
+    fn write_char(&mut self, c: char) -> fmt::Result {
+        let mut buf = [0u8; 4];
+        if self.text_info.pos.0 + 1 > self.inner.width as i32 {
+            self.text_info.pos.0 = 0;
+            self.text_info.pos.1 += 20;
+        }
+        let text = Text::new(
+            c.encode_utf8(&mut buf),
             self.text_info.pos.into(),
             MonoTextStyle::new(&FONT_10X20, Rgb888::WHITE),
-        )
-        .draw(self)
-        {
-            Ok(i) => i.into(),
-            Err(()) => panic!(),
-        };
+        );
+        self.text_info.pos = text.draw(self).map_err(|_| fmt::Error)?.into();
+        if c == '\n' {
+            self.text_info.pos.0 = 0;
+        }
         Ok(())
     }
 }

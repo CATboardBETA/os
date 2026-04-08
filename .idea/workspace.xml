@@ -18,21 +18,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="74f60473-e2ee-4bd2-887c-e566956a948d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/iso/boot/limine.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/kernel/.cargo/config.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/kernel/kernel-x86_64.ld" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/kernel/src/alloc_handler.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/kernel/src/crt.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/runner/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.cargo/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/.cargo/config.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kernel/src/interrupt.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kernel/src/interrupt/interrupt_aarch64.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kernel/src/interrupt/interrupt_x64.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kernel/src/reqs.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kernel/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kernel/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/build.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kernel/src/alloc_handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/src/alloc_handler.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kernel/src/crt.rs" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/src/crt.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kernel/src/gfx.rs" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/src/gfx.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kernel/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/runner/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/runner/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/runner/build.rs" beforeDir="false" afterPath="$PROJECT_DIR$/runner/build.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-toolchain.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-toolchain.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/runner/kernel" beforeDir="false" afterPath="$PROJECT_DIR$/runner/kernel" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/runner/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/runner/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,42 +126,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_MARK_IGNORED_FILES_AS_EXCLUDED&quot;: &quot;true&quot;,
-    &quot;Cargo.Run.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/will/rtos/kernel&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;org.rust.first.attach.projects&quot;: &quot;true&quot;,
-    &quot;org.rust.hideNoCargoProjectNotifications/Users/will/rtos/kernel/Cargo.toml&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;language.rust.cargo.check&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "Cargo.Run.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/will/rtos/kernel",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "org.rust.first.attach.projects": "true",
+    "org.rust.hideNoCargoProjectNotifications/Users/will/rtos/kernel/Cargo.toml": "true",
+    "settings.editor.selected.configurable": "language.rust.build.tool.cargo",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/kernel" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/kernel/src/interrupt" />
       <recent name="$PROJECT_DIR$/iso/boot" />
       <recent name="$PROJECT_DIR$/iso/EFI/BOOT" />
       <recent name="$PROJECT_DIR$/kernel" />
       <recent name="$PROJECT_DIR$/runner" />
-      <recent name="$PROJECT_DIR$/runner/src" />
     </key>
   </component>
   <component name="RsExternalLinterProjectSettings">
@@ -186,6 +187,7 @@
     </configuration>
   </component>
   <component name="RustProjectSettings">
+    <option name="rustcTarget" value="x86_64-pc-cygwin" />
     <option name="toolchainHomeDirectory" value="$PROJECT_DIR$/../.cargo/bin" />
   </component>
   <component name="TaskManager">
@@ -224,6 +226,7 @@
       <workItem from="1775602771000" duration="1171000" />
       <workItem from="1775610834552" duration="1551000" />
       <workItem from="1775612466088" duration="3055000" />
+      <workItem from="1775619674526" duration="14166000" />
     </task>
     <servers />
   </component>

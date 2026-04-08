@@ -2,5 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mimalloc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mimalloc/libmimalloc-sys/c_src/mimalloc/v2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/mimalloc/libmimalloc-sys/c_src/mimalloc/v3" vcs="Git" />
   </component>
 </project>
