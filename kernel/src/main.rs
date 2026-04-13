@@ -3,9 +3,10 @@
 #![cfg_attr(target_arch = "x86_64", feature(abi_x86_interrupt))]
 #![cfg_attr(not(test), no_main)]
 #![warn(clippy::pedantic)]
-#![warn(clippy::nursery)]
 #![allow(clippy::cast_possible_truncation)]
 #![allow(clippy::cast_sign_loss)]
+// TODO: remove unused allow
+#![allow(unused)]
 
 extern crate alloc;
 
@@ -24,10 +25,6 @@ mod interrupt;
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kmain() -> ! {
     alloc_handler::init_global();
-    #[cfg(target_arch = "aarch64")]
-    unsafe {
-        interrupt::handling_init();
-    }
     #[cfg(target_arch = "x86_64")]
     interrupt::init_interrupt_table();
 
