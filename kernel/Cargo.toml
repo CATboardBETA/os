@@ -10,7 +10,6 @@ test = false
 bench = false
 
 [dependencies]
-acpi = "5.2.0"
 limine = "0.6.3"
 spin = "0.10.0"
 talc = "5.0.3"
