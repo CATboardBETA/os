@@ -16,7 +16,6 @@
   <component name="ChangeListManager">
     <list default="true" id="880acd77-ee29-4ac0-bf95-eb5bc40b8e77" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/kernel/src/alloc_handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/kernel/src/alloc_handler.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,7 +23,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="DarkyenusTimeTracker">
-    <option name="totalTimeSeconds" value="44539" />
+    <option name="totalTimeSeconds" value="45070" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:dev" />
   <component name="Git.Settings">
@@ -113,7 +112,7 @@
       <workItem from="1775949946175" duration="23006000" />
       <workItem from="1776040169408" duration="863000" />
       <workItem from="1776082742797" duration="10162000" />
-      <workItem from="1776103852124" duration="2052000" />
+      <workItem from="1776103852124" duration="3225000" />
     </task>
     <servers />
   </component>

@@ -12,7 +12,6 @@ pub fn init_global() {
     let offset = HHDM.response().unwrap().offset;
     let memmap = MEMMAP.response().unwrap().entries();
     for entry in memmap {
-        core::mem::transmute_neo()
         if entry.type_ == MEMMAP_USABLE {
             unsafe {
                 GLOBAL
