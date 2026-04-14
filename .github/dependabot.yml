@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "cargo" # See documentation for possible values
+    directory: "/kernel" # Location of package manifests
+    schedule:
+      interval: "weekly" 
+  - package-ecosystem: "cargo" 
+    directory: "/runner"
+    schedule:
+      interval: "weekly"
+# I shouldn't need one for the root I don't think?
