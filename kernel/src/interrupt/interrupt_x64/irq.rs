@@ -1,9 +1,14 @@
+//! This module exists purely just to prevent [`interrupt_x64`](super) from becoming to bloated
+//! with a huge enum. This is also why the only item in this module is only `pub(super)`
+
+/// This was primarily just taken from [the osdev wiki](https://wiki.osdev.org/Interrupts#General_IBM-PC_Compatible_Interrupt_Information)
+///
 // I think this is exhaustive of what I will actually get, but just in case...
 #[non_exhaustive]
-pub enum Irq {
+pub(super) enum Irq {
     /// Programmable Interrupt Timer Interrupt
     Pit,
-    /// Keyboard interrupts yay
+    /// Keyboard interrupts yippee
     Keyboard,
     /// Never triggered, used internally by PICs
     Cascade,
@@ -17,6 +22,7 @@ pub enum Irq {
     Floppy,
     /// Spurious interrupt
     Lpt1,
+    /// A clock, on CMOS
     CmosClock,
     /// Any of these
     FreeScsiNic1,
@@ -24,7 +30,7 @@ pub enum Irq {
     FreeScsiNic2,
     /// Any of these
     FreeScsiNic3,
-    /// Not the PlayStation 2, sorry
+    /// Mouse
     Ps2Mouse,
     /// Any of these
     FpuCoprocessorInterprocessor,

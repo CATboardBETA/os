@@ -1,4 +1,7 @@
+//! This defines all the [`limine`] requests. These are used throughout the kernel. 
 #![allow(unused)]
+#![allow(missing_docs)]
+#![allow(clippy::missing_docs_in_private_items)]
 use crate::kmain;
 use limine::request::BootloaderInfoRequest;
 use limine::request::BootloaderPerformanceRequest;
