@@ -13,6 +13,7 @@ bench = false
 limine = "0.6.3"
 spin = "0.10.0"
 talc = "5.0.3"
+smallvec = "2.0.0-alpha.12"
 [target.'cfg(target_arch="x86_64")'.dependencies]
 x86_64 = "0.15.4"
 

@@ -1,4 +1,5 @@
-//! Anything related to allocation, including the `global_allocator` lang item.
+//! Implementation of the global allocator with no debugging, for release builds. Implemented
+//! using the [`talc`] crate.
 
 use crate::reqs::{HHDM, MEMMAP};
 use core::num::NonZero;
@@ -9,7 +10,7 @@ use talc::source::Manual;
 use talc::TalcLock;
 
 
-/// This is gloal allocator. For now, until we roll our own allocator, we are using [`Talc`](talc).
+/// This is global allocator. Implemented using the [`Talc`](talc) crate.
 #[global_allocator]
 static GLOBAL: TalcLock<Mutex<()>, Manual> = TalcLock::new(Manual);
 
