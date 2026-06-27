@@ -335,9 +335,12 @@ impl Gfx<'_> {
         let mut x = left;
         let mut y = top;
         for px in data.chunks_exact(4) {
-            let ptr: *const [u8; 4] = px.as_ptr().cast();
+            // Convert RGBA to ARGB
+            // TODO make colorspace generic
+            let arr = [px[3], px[0], px[1], px[2]];
+
             unsafe {
-                self.write_px_unchecked(x, y, *ptr);
+                self.write_px_unchecked(x, y, arr);
             }
             x += 1;
             if x >= width {
