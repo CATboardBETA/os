@@ -367,8 +367,8 @@ impl Gfx<'_> {
                 self.write_px_unchecked(x, y, arr);
             }
             x += 1;
-            if x >= width {
-                x = 0;
+            if x >= width + left {
+                x = left;
                 y += 1;
             }
         }
