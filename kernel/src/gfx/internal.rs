@@ -328,10 +328,34 @@ impl Gfx<'_> {
         }
     }
 
+    /// Draws an image to the screen, with the top-left corner at (`left`, `top`), and of given
+    /// width and height
+    pub fn draw_image(
+        &self,
+        data: &[u8],
+        left: usize,
+        top: usize,
+        width: usize,
+        height: usize,
+    ) -> DrawResult {
+        if left + width > self.width {
+            // overflows right edge
+            Err(DrawError::OutOfBounds)
+        } else if top + height > self.height {
+            // overflows bottom edge
+            Err(DrawError::OutOfBounds)
+        } else {
+            unsafe {
+                self.draw_image_unchecked(data, left, top, width);
+            }
+            Ok(())
+        }
+    }
+
     /// Draws an image to the screen, in native color format. [`left`] is the distance from the left
     /// edge of the screen, and [`top`] is the distance from the top edge of the screen. Bounds
     /// checks are not performed.
-    pub unsafe fn draw_image_unchecked(&self, data: Vec<u8>, left: usize, top: usize, width: usize) {
+    pub unsafe fn draw_image_unchecked(&self, data: &[u8], left: usize, top: usize, width: usize) {
         let mut x = left;
         let mut y = top;
         for px in data.chunks_exact(4) {

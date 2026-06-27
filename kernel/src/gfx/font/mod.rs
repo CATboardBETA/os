@@ -1,6 +1,6 @@
 //! All font rendering. Primary type is a wrapper type around [`Gfx`], [`GfxFont`].
 
-use crate::gfx::Gfx;
+use crate::gfx::{DrawResult, Gfx};
 use core::ops::Deref;
 use swash::scale::{Render, ScaleContext, Source, StrikeWith};
 use swash::zeno::{Format, Placement, Vector};
@@ -32,8 +32,8 @@ impl<'gfx> Deref for GfxFont<'gfx> {
 }
 
 impl GfxFont<'_> {
-    /// Draws a char to the screen,
-    pub unsafe fn draw_char(&mut self, c: char, x: f32, y: f32) {
+    /// Draws a char to the screen, at (x, y)
+    pub fn draw_char(&mut self, c: char, x: f32, y: f32) -> DrawResult {
         let mut scaler = self
             .ctx
             .builder(self.font)
@@ -46,13 +46,72 @@ impl GfxFont<'_> {
             Source::ColorBitmap(StrikeWith::BestFit),
             Source::Outline,
         ])
-            .format(Format::Subpixel)
-            .offset(offset)
-            .render(&mut scaler, self.font.charmap().map(c)).unwrap();
-        let Placement { left, top, width, height: _ } = image.placement;
+        .format(Format::Subpixel)
+        .offset(offset)
+        .render(&mut scaler, self.font.charmap().map(c))
+        .unwrap();
+        let Placement {
+            left,
+            top,
+            width,
+            height,
+        } = image.placement;
+        let data = image.data;
+        self.draw_image(
+            &data,
+            left as usize,
+            top as usize,
+            width as usize,
+            height as usize,
+        )
+    }
+    /// Draws a char to the screen, without bounds checks
+    pub unsafe fn draw_char_unchecked(&mut self, c: char, x: f32, y: f32) {
+        let mut scaler = self
+            .ctx
+            .builder(self.font)
+            .size(self.size)
+            .hint(self.hint)
+            .build();
+        let offset = Vector::new(x, y);
+        let image = Render::new(&[
+            Source::ColorOutline(0),
+            Source::ColorBitmap(StrikeWith::BestFit),
+            Source::Outline,
+        ])
+        .format(Format::Subpixel)
+        .offset(offset)
+        .render(&mut scaler, self.font.charmap().map(c))
+        .unwrap();
+        let Placement {
+            left,
+            top,
+            width,
+            height: _,
+        } = image.placement;
         let data = image.data;
         unsafe {
-            self.draw_image_unchecked(data, left as usize, top as usize, width as usize);
+            self.draw_image_unchecked(&data, left as usize, top as usize, width as usize);
         }
+    }
+
+    /// Updates the font size to `new`
+    pub fn set_size(&mut self, new: f32) {
+        self.size = new;
+    }
+
+    /// Returns the current font size
+    pub fn get_size(&self) -> f32 {
+        self.size
+    }
+
+    /// Updates whether to hint or not to `new`
+    pub fn set_hinting(&mut self, new: bool) {
+        self.hint = new;
+    }
+
+    /// Returns whether font hinting is enabled
+    pub fn get_hinting(&self) -> bool {
+        self.hint
     }
 }
