@@ -3,11 +3,14 @@
 //!
 //! TODO: Make color generic
 
+use crate::gfx::font::GfxFont;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::cmp::{max, Ordering};
 use core::slice;
 use limine::framebuffer::Framebuffer;
+use swash::scale::ScaleContext;
+use swash::FontRef;
 
 /// Intended only for likely unsafe implementations, or implementations that depend on other checks
 /// outside the scope of a trait method.
@@ -34,10 +37,12 @@ pub enum DrawError {
     OutOfBounds,
     /// Character not in provided font.
     NoSuchGlyph(char),
+    /// Forwards an error from [`ttf_parser`]
+    FontParseError,
 }
 
 /// A type alias of [`Result`], because all the checked drawing functions return the same type.
-pub type DrawResult = Result<(), DrawError>;
+pub type DrawResult<T = ()> = Result<T, DrawError>;
 
 ///
 /// TODO: Change to be generic, or an enum so that we can draw in multiple colorspaces
@@ -65,7 +70,6 @@ impl From<Color> for [u8; 4] {
         [255, value.r, value.g, value.b]
     }
 }
-
 
 /// The core `struct` in this module is [`Gfx`]. Its `impl`s hold all the drawing functions,
 /// and it even contains a reference to the underlying `Framebuffer` passed from [`limine`]
@@ -191,7 +195,6 @@ impl Gfx<'_> {
             Ok(())
         }
     }
-
 
     /// Draws a line, using Bresenham's algorithm. This does not perform antialiasing
     ///
@@ -323,5 +326,43 @@ impl Gfx<'_> {
                 d += 2 * dx;
             }
         }
+    }
+
+    /// Draws an image to the screen, in native color format. [`left`] is the distance from the left
+    /// edge of the screen, and [`top`] is the distance from the top edge of the screen. Bounds
+    /// checks are not performed.
+    pub unsafe fn draw_image_unchecked(&self, data: Vec<u8>, left: usize, top: usize, width: usize) {
+        let mut x = left;
+        let mut y = top;
+        for px in data.chunks_exact(4) {
+            let ptr: *const [u8; 4] = px.as_ptr().cast();
+            unsafe {
+                self.write_px_unchecked(x, y, *ptr);
+            }
+            x += 1;
+            if x >= width {
+                x = 0;
+                y += 1;
+            }
+        }
+    }
+
+    /// Creates a new [`GfxFont`] from a reference to the current [`Gfx`].
+    /// To get a font, one can simply use the [`include_bytes!`] macro.
+    ///
+    /// This compiles the entire font prior to usage.
+    pub fn with_font_bytes<'fnt, 'slf: 'fnt>(
+        &'slf self,
+        font_data: &'fnt [u8],
+    ) -> DrawResult<GfxFont<'fnt>> {
+        let font = FontRef::from_index(font_data, 0).ok_or(DrawError::FontParseError)?;
+        let mut ctx = ScaleContext::new();
+        Ok(GfxFont {
+            gfx: self,
+            font,
+            ctx,
+            size: 12.0,
+            hint: true,
+        })
     }
 }

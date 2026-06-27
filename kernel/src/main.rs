@@ -23,8 +23,6 @@
 
 extern crate alloc;
 
-use alloc::vec;
-use core::hint::black_box;
 use crate::gfx::{Color, Gfx};
 use crate::reqs::FRAMEBUFFER;
 
@@ -33,7 +31,6 @@ mod gfx;
 mod interrupt;
 mod panic;
 mod reqs;
-
 
 /// # Safety
 /// As this is the entrypoint, all safety expectations from the rest of the kernel must be upheld
@@ -65,10 +62,17 @@ pub unsafe extern "C" fn kmain() -> ! {
     );
     gfx.fill_rect((40, 20), (700, 300), Color::BLUE).unwrap();
     gfx.draw_line((10, 30), (550, 700), Color::RED).unwrap();
+    unsafe {
+        gfx.with_font_bytes(include_bytes!(
+            "gfx/font/OpenSans-VariableFont_wdth,wght.ttf"
+        ))
+        .unwrap()
+        .draw_char('x', 0., 0.);
+    }
+    gfx.draw_line((50, 30), (550, 700), Color::RED).unwrap();
 
     hcf();
 }
-
 
 /// Runs the appropriate assembler on loop, to halt
 fn hcf() -> ! {

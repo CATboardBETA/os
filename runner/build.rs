@@ -33,6 +33,8 @@ fn main() {
             "--artifact-dir",
             "./",
             "-vv",
+            "--color",
+            "always",
         ])
         .status()
         .unwrap()
