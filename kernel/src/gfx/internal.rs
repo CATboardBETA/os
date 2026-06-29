@@ -30,7 +30,7 @@ impl UnsafeSliceFramebuffer for Framebuffer {
 }
 
 /// An error returned by a drawing function. Used as [`DrawResult`]'s `E` type
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum DrawError {
     /// Tried to draw off the screen
     OutOfBounds,

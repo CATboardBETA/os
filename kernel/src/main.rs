@@ -62,7 +62,7 @@ pub unsafe extern "C" fn kmain() -> ! {
     );
     gfx.with_font_bytes(include_bytes!("gfx/font/OpenSans-Medium.ttf"))
         .unwrap()
-        .draw_str("hello world", 50., 250.)
+        .draw_str("Rust is incredible. Ferris ferris ferris ferris corro ferris", 250., 250., Some(250.))
         .unwrap();
 
     hcf();

@@ -26,33 +26,62 @@ impl<'gfx> Deref for GfxFont<'gfx> {
 }
 
 impl GfxFont<'_> {
+    /// Draws a string at the specified (x,y) coordinate. If `max_width` is `Some`, then this
+    /// function will not draw past `x + max_width`
     pub fn draw_str<S: AsRef<str>>(
         &mut self,
         s: S,
         mut x: f32,
         mut y: f32,
+        max_width: Option<f32>,
     ) -> DrawResult<(f32, f32)> {
+        let og_x = x;
         for c in s.as_ref().chars() {
-            let (x_adv, y_adv) = self.draw_char(c, x, y)?;
-            x += x_adv;
-            y += y_adv;
+            match self.draw_char(c, x, y, max_width.map(|w| w + og_x)) {
+                Ok((x_adv, y_adv)) => {
+                    x += x_adv;
+                    y += y_adv;
+                }
+                Err(DrawError::OutOfBounds) => {
+                    x = og_x;
+                    let font = self.font.as_scaled(self.size);
+                    y += font.height() + font.line_gap();
+                    let (x_adv, y_adv) = self.draw_char(c, x, y, max_width.map(|w| w + og_x))?;
+                    x += x_adv;
+                    y += y_adv;
+                }
+                Err(e) => return Err(e),
+            }
         }
         Ok((x, y))
     }
 
     /// Draws a char to the screen, at (x, y)
-    pub fn draw_char(&mut self, c: char, x: f32, y: f32) -> DrawResult<(f32, f32)> {
+    #[allow(clippy::cast_precision_loss)]
+    pub fn draw_char(
+        &mut self,
+        c: char,
+        x: f32,
+        y: f32,
+        max_px: Option<f32>,
+    ) -> DrawResult<(f32, f32)> {
         let font = self.font.as_scaled(self.size);
         let mut glyphs = font.scaled_glyph(c);
         glyphs.position = (x, y).into();
         let id = glyphs.id;
+        if let Some(max_px) = max_px
+            && (x + font.h_advance(id)) >= max_px
+        {
+            return Err(DrawError::OutOfBounds);
+        }
         if x < 0.
             || y < 0.
-            || (x + font.h_advance(id)) >= self.gfx.fb.width as f32
+            || (x + font.h_advance(id)) >= self.fb.width as f32
             || (y + font.height() + font.line_gap()) >= self.gfx.fb.height as f32
         {
             return Err(DrawError::OutOfBounds);
         }
+
         let glyph = unsafe { self.font.outline_glyph(glyphs) };
         let mut h_adv = 0.;
         let mut v_adv = 0.;
