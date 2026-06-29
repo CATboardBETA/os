@@ -45,7 +45,8 @@ impl GfxFont<'_> {
                 Err(DrawError::OutOfBounds) => {
                     x = og_x;
                     let font = self.font.as_scaled(self.size);
-                    y += font.height() + font.line_gap();
+                    let y_adv = font.height() + font.line_gap();
+                    y += y_adv;
                     let (x_adv, y_adv) = self.draw_char(c, x, y, max_width.map(|w| w + og_x))?;
                     x += x_adv;
                     y += y_adv;
