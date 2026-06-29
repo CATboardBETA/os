@@ -1,10 +1,8 @@
 //! All font rendering. Primary type is a wrapper type around [`Gfx`], [`GfxFont`].
 
-use crate::gfx::{DrawResult, Gfx};
+use crate::gfx::{DrawError, DrawResult, Gfx};
+use ab_glyph::{Font, FontRef, ScaleFont};
 use core::ops::Deref;
-use swash::scale::{Render, ScaleContext, Source, StrikeWith};
-use swash::zeno::{Format, Placement, Vector};
-use swash::FontRef;
 
 /// Simple wrapper around [`Gfx`], but allows for drawing with a font.
 pub struct GfxFont<'gfx> {
@@ -13,14 +11,10 @@ pub struct GfxFont<'gfx> {
     /// All methods from [`Gfx`] can be accessed directly, because [`GfxFont`] implements
     /// [`Deref`] with  `Target=Gfx`.
     pub(super) gfx: &'gfx Gfx<'gfx>,
-    /// The font. This struct comes from [`swash`], which we use for rendering.
+    /// The font. This struct comes from [`ab_glyph`], which we use for rasterizing.
     pub(super) font: FontRef<'gfx>,
-    /// Used to build fonts given font size and other parameters. Provided by [`swash`]
-    pub(super) ctx: ScaleContext,
     /// Font size
     pub(super) size: f32,
-    /// Whether to [hint](https://en.wikipedia.org/wiki/Font_hinting) the font or not
-    pub(super) hint: bool,
 }
 
 impl<'gfx> Deref for GfxFont<'gfx> {
@@ -32,67 +26,84 @@ impl<'gfx> Deref for GfxFont<'gfx> {
 }
 
 impl GfxFont<'_> {
+    pub fn draw_str<S: AsRef<str>>(
+        &mut self,
+        s: S,
+        mut x: f32,
+        mut y: f32,
+    ) -> DrawResult<(f32, f32)> {
+        for c in s.as_ref().chars() {
+            let (x_adv, y_adv) = self.draw_char(c, x, y)?;
+            x += x_adv;
+            y += y_adv;
+        }
+        Ok((x, y))
+    }
+
     /// Draws a char to the screen, at (x, y)
-    pub fn draw_char(&mut self, c: char, x: f32, y: f32) -> DrawResult {
-        let mut scaler = self
-            .ctx
-            .builder(self.font)
-            .size(self.size)
-            .hint(self.hint)
-            .build();
-        let offset = Vector::new(x, y);
-        let image = Render::new(&[
-            Source::ColorOutline(0),
-            Source::ColorBitmap(StrikeWith::BestFit),
-            Source::Outline,
-        ])
-        .format(Format::Subpixel)
-        .offset(offset)
-        .render(&mut scaler, self.font.charmap().map(c))
-        .unwrap();
-        let Placement {
-            left,
-            top,
-            width,
-            height,
-        } = image.placement;
-        let data = image.data;
-        self.draw_image(
-            &data,
-            left as usize,
-            top as usize,
-            width as usize,
-            height as usize,
-        )
+    pub fn draw_char(&mut self, c: char, x: f32, y: f32) -> DrawResult<(f32, f32)> {
+        let font = self.font.as_scaled(self.size);
+        let mut glyphs = font.scaled_glyph(c);
+        glyphs.position = (x, y).into();
+        let id = glyphs.id;
+        if x < 0.
+            || y < 0.
+            || (x + font.h_advance(id)) >= self.gfx.fb.width as f32
+            || (y + font.height() + font.line_gap()) >= self.gfx.fb.height as f32
+        {
+            return Err(DrawError::OutOfBounds);
+        }
+        let glyph = unsafe { self.font.outline_glyph(glyphs) };
+        let mut h_adv = 0.;
+        let mut v_adv = 0.;
+        if c == '\n' {
+            h_adv = 0.;
+            v_adv = font.height() + font.line_gap();
+        } else {
+            h_adv = font.h_advance(id);
+            v_adv = 0.;
+        }
+        if let Some(glyph) = glyph {
+            let bounds = glyph.px_bounds();
+            glyph.draw(|x, y, c| {
+                let x = x + bounds.min.x as u32;
+                let y = y + bounds.min.y as u32;
+                let c = (c * 255.) as u8;
+                unsafe {
+                    self.write_px_unchecked(x as usize, y as usize, [c, c, c, c]);
+                }
+            });
+        }
+        Ok((h_adv, v_adv))
     }
     /// Draws a char to the screen, without bounds checks
-    pub unsafe fn draw_char_unchecked(&mut self, c: char, x: f32, y: f32) {
-        let mut scaler = self
-            .ctx
-            .builder(self.font)
-            .size(self.size)
-            .hint(self.hint)
-            .build();
-        let offset = Vector::new(x, y);
-        let image = Render::new(&[
-            Source::ColorOutline(0),
-            Source::ColorBitmap(StrikeWith::BestFit),
-            Source::Outline,
-        ])
-        .format(Format::Subpixel)
-        .offset(offset)
-        .render(&mut scaler, self.font.charmap().map(c))
-        .unwrap();
-        let Placement {
-            left,
-            top,
-            width,
-            height: _,
-        } = image.placement;
-        let data = image.data;
-        unsafe {
-            self.draw_image_unchecked(&data, left as usize, top as usize, width as usize);
+    pub unsafe fn draw_char_unchecked(&mut self, c: char, x: f32, y: f32) -> (f32, f32) {
+        let font = self.font.as_scaled(self.size);
+        let mut glyphs = font.scaled_glyph(c);
+        glyphs.position = (x, y).into();
+        let id = glyphs.id;
+        let glyph = unsafe { self.font.outline_glyph(glyphs) };
+        let mut h_adv = 0.;
+        let mut v_adv = 0.;
+        if c == '\n' {
+            h_adv = 0.;
+            v_adv = font.height() + font.line_gap();
+        } else {
+            h_adv = font.h_advance(id);
+            v_adv = 0.;
         }
+        if let Some(glyph) = glyph {
+            let bounds = glyph.px_bounds();
+            glyph.draw(|x, y, c| {
+                let x = x + bounds.min.x as u32;
+                let y = y + bounds.min.y as u32;
+                let c = (c * 255.) as u8;
+                unsafe {
+                    self.write_px_unchecked(x as usize, y as usize, [c, c, c, c]);
+                }
+            });
+        }
+        (h_adv, v_adv)
     }
 
     /// Updates the font size to `new`
@@ -103,15 +114,5 @@ impl GfxFont<'_> {
     /// Returns the current font size
     pub fn get_size(&self) -> f32 {
         self.size
-    }
-
-    /// Updates whether to hint or not to `new`
-    pub fn set_hinting(&mut self, new: bool) {
-        self.hint = new;
-    }
-
-    /// Returns whether font hinting is enabled
-    pub fn get_hinting(&self) -> bool {
-        self.hint
     }
 }

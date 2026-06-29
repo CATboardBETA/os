@@ -4,13 +4,12 @@
 //! TODO: Make color generic
 
 use crate::gfx::font::GfxFont;
+use ab_glyph::FontRef;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::cmp::{max, Ordering};
+use core::cmp::{Ordering, max};
 use core::slice;
 use limine::framebuffer::Framebuffer;
-use swash::scale::ScaleContext;
-use swash::FontRef;
 
 /// Intended only for likely unsafe implementations, or implementations that depend on other checks
 /// outside the scope of a trait method.
@@ -77,7 +76,7 @@ impl From<Color> for [u8; 4] {
 /// To swap the buffers, use [`Gfx::swap_buffers()`]
 pub struct Gfx<'fb> {
     /// Internal framebuffer. A vector of Framebuffers is passed in a limine request.
-    fb: &'fb Framebuffer,
+    pub(super) fb: &'fb Framebuffer,
     /// The second buffer. This allows for drawing on a separate buffer, or switching swapping
     /// between buffers.
     /// TODO: Make functions generic over a `Buffer` type
@@ -382,14 +381,11 @@ impl Gfx<'_> {
         &'slf self,
         font_data: &'fnt [u8],
     ) -> DrawResult<GfxFont<'fnt>> {
-        let font = FontRef::from_index(font_data, 0).ok_or(DrawError::FontParseError)?;
-        let mut ctx = ScaleContext::new();
+        let font = FontRef::try_from_slice(font_data).map_err(|_| DrawError::FontParseError)?;
         Ok(GfxFont {
             gfx: self,
             font,
-            ctx,
-            size: 12.0,
-            hint: true,
+            size: 40.0,
         })
     }
 }

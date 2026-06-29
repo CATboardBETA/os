@@ -23,7 +23,7 @@
 
 extern crate alloc;
 
-use crate::gfx::{Color, Gfx};
+use crate::gfx::Gfx;
 use crate::reqs::FRAMEBUFFER;
 
 mod alloc_handler;
@@ -60,14 +60,10 @@ pub unsafe extern "C" fn kmain() -> ! {
             .first()
             .unwrap(),
     );
-    gfx.fill_rect((40, 20), (700, 300), Color::BLUE).unwrap();
-    gfx.draw_line((10, 30), (550, 700), Color::RED).unwrap();
-    gfx.with_font_bytes(include_bytes!(
-        "gfx/font/OpenSans-VariableFont_wdth,wght.ttf"
-    ))
-    .unwrap()
-    .draw_char('x', 0., 0.).unwrap();
-    gfx.draw_line((50, 30), (550, 700), Color::RED).unwrap();
+    gfx.with_font_bytes(include_bytes!("gfx/font/OpenSans-Medium.ttf"))
+        .unwrap()
+        .draw_str("hello world", 50., 250.)
+        .unwrap();
 
     hcf();
 }
