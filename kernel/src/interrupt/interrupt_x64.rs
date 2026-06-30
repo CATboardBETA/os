@@ -11,6 +11,7 @@ mod irq;
 /// handling these. For each interrupt type, you simply run
 /// `idt.<interrupt>.set_handler_fn(<handler>)`, and the `IDT` will call the handler whenever the
 /// interrupt is triggered.
+#[allow(unused_results)]
 static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     use handlers::{
         handle_alignment_check, handle_breakpoint, handle_double_fault, handle_gpf,
@@ -31,4 +32,3 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
 pub fn init_interrupt_table() {
     IDT.load();
 }
-

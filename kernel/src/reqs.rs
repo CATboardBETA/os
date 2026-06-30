@@ -1,4 +1,4 @@
-//! This defines all the [`limine`] requests. These are used throughout the kernel. 
+//! This defines all the [`limine`] requests. These are used throughout the kernel.
 #![allow(unused)]
 #![allow(missing_docs)]
 #![allow(clippy::missing_docs_in_private_items)]

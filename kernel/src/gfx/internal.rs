@@ -3,9 +3,11 @@
 //!
 //! TODO: Make color generic
 
+use crate::gfx::font::GfxFont;
+use ab_glyph::FontRef;
 use alloc::vec;
 use alloc::vec::Vec;
-use core::cmp::{max, Ordering};
+use core::cmp::{Ordering, max};
 use core::slice;
 use limine::framebuffer::Framebuffer;
 
@@ -28,16 +30,18 @@ impl UnsafeSliceFramebuffer for Framebuffer {
 }
 
 /// An error returned by a drawing function. Used as [`DrawResult`]'s `E` type
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum DrawError {
     /// Tried to draw off the screen
     OutOfBounds,
     /// Character not in provided font.
     NoSuchGlyph(char),
+    /// Forwards an error from [`ttf_parser`]
+    FontParseError,
 }
 
 /// A type alias of [`Result`], because all the checked drawing functions return the same type.
-pub type DrawResult = Result<(), DrawError>;
+pub type DrawResult<T = ()> = Result<T, DrawError>;
 
 ///
 /// TODO: Change to be generic, or an enum so that we can draw in multiple colorspaces
@@ -66,14 +70,13 @@ impl From<Color> for [u8; 4] {
     }
 }
 
-
 /// The core `struct` in this module is [`Gfx`]. Its `impl`s hold all the drawing functions,
 /// and it even contains a reference to the underlying `Framebuffer` passed from [`limine`]
 ///
 /// To swap the buffers, use [`Gfx::swap_buffers()`]
 pub struct Gfx<'fb> {
     /// Internal framebuffer. A vector of Framebuffers is passed in a limine request.
-    fb: &'fb Framebuffer,
+    pub(super) fb: &'fb Framebuffer,
     /// The second buffer. This allows for drawing on a separate buffer, or switching swapping
     /// between buffers.
     /// TODO: Make functions generic over a `Buffer` type
@@ -191,7 +194,6 @@ impl Gfx<'_> {
             Ok(())
         }
     }
-
 
     /// Draws a line, using Bresenham's algorithm. This does not perform antialiasing
     ///
@@ -323,5 +325,67 @@ impl Gfx<'_> {
                 d += 2 * dx;
             }
         }
+    }
+
+    /// Draws an image to the screen, with the top-left corner at (`left`, `top`), and of given
+    /// width and height
+    pub fn draw_image(
+        &self,
+        data: &[u8],
+        left: usize,
+        top: usize,
+        width: usize,
+        height: usize,
+    ) -> DrawResult {
+        if left + width > self.width {
+            // overflows right edge
+            Err(DrawError::OutOfBounds)
+        } else if top + height > self.height {
+            // overflows bottom edge
+            Err(DrawError::OutOfBounds)
+        } else {
+            unsafe {
+                self.draw_image_unchecked(data, left, top, width);
+            }
+            Ok(())
+        }
+    }
+
+    /// Draws an image to the screen, in native color format. [`left`] is the distance from the left
+    /// edge of the screen, and [`top`] is the distance from the top edge of the screen. Bounds
+    /// checks are not performed.
+    pub unsafe fn draw_image_unchecked(&self, data: &[u8], left: usize, top: usize, width: usize) {
+        let mut x = left;
+        let mut y = top;
+        for px in data.chunks_exact(4) {
+            // Convert RGBA to ARGB
+            // TODO make colorspace generic
+            let arr = [px[3], px[0], px[1], px[2]];
+
+            unsafe {
+                self.write_px_unchecked(x, y, arr);
+            }
+            x += 1;
+            if x >= width + left {
+                x = left;
+                y += 1;
+            }
+        }
+    }
+
+    /// Creates a new [`GfxFont`] from a reference to the current [`Gfx`].
+    /// To get a font, one can simply use the [`include_bytes!`] macro.
+    ///
+    /// This compiles the entire font prior to usage.
+    pub fn with_font_bytes<'fnt, 'slf: 'fnt>(
+        &'slf self,
+        font_data: &'fnt [u8],
+    ) -> DrawResult<GfxFont<'fnt>> {
+        let font = FontRef::try_from_slice(font_data).map_err(|_| DrawError::FontParseError)?;
+        Ok(GfxFont {
+            gfx: self,
+            font,
+            size: 40.0,
+        })
     }
 }

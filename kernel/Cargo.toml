@@ -10,9 +10,12 @@ test = false
 bench = false
 
 [dependencies]
+hashbrown = "0.17.0"
 limine = "0.6.3"
 spin = "0.10.0"
+ab_glyph = { version = "0.2.32", default-features = false, features = ["libm"] }
 talc = "5.0.3"
+libm = "0.2.16"
 [target.'cfg(target_arch="x86_64")'.dependencies]
 x86_64 = "0.15.4"
 

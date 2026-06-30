@@ -5,9 +5,8 @@ use core::num::NonZero;
 use core::ptr::NonNull;
 use limine::memmap::MEMMAP_USABLE;
 use spin::Mutex;
-use talc::source::Manual;
 use talc::TalcLock;
-
+use talc::source::Manual;
 
 /// This is gloal allocator. For now, until we roll our own allocator, we are using [`Talc`](talc).
 #[global_allocator]

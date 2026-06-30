@@ -1,5 +1,5 @@
 //! Submodule for `x86_64` handlers.
-//! 
+//!
 //! Note that these handlers are also known as `ISR`s, or Interrupt Service Routines.
 #![allow(clippy::missing_docs_in_private_items)]
 use crate::println;
